@@ -1,0 +1,54 @@
+SoundDS <- read.csv("Nov20DS.csv")
+sound_tib <- as_tibble(SoundDS)
+SoundDS <- select(sound_tib,SUB_TYPE,FOLDER_NAME,EVENT_MONTH,EVENT_YEAR,DECIBEL_LEVEL,SQUARE_FOOTAGE,ZIPCODE)
+SoundDS <- SoundDS[-c(1959, 5478, 3615), ]
+
+library(dplyr)
+SoundDS <-  mutate(SoundDS, Season = case_when(
+  EVENT_MONTH == "JANUARY" ~ "Winter",
+  EVENT_MONTH == "FEBRUARY" ~ "Winter",
+  EVENT_MONTH == "MARCH" ~ "Spring",
+  EVENT_MONTH == "APRIL" ~ "Spring",
+  EVENT_MONTH == "MAY" ~ "Spring",
+  EVENT_MONTH == "JUNE" ~ "Summer",
+  EVENT_MONTH == "JULY" ~ "Summer",
+  EVENT_MONTH == "AUGUST" ~ "Summer",
+  EVENT_MONTH == "SEPTEMBER" ~ "Fall",
+  EVENT_MONTH == "OCTOBER" ~ "Fall",
+  EVENT_MONTH == "NOVEMBER" ~ "Fall",
+  EVENT_MONTH == "DECEMBER" ~ "Winter",
+  TRUE ~ "Unknown"
+))
+boxplot(SoundDS$DECIBEL_LEVEL ~ SoundDS$Season, col = "#fec44f", pch = 20, main = "Explicit Nature vs Popularity", xlab = "Explicit Nature (True/False)", ylab = "Popularity", family = "Times New Roman")
+
+library(ggplot2)
+sound_ggplot <- ggplot(SoundDS)
+
+sound_ggplot +
+  geom_boxplot(aes(x = Season, y = DECIBEL_LEVEL),fill = "#fec44f") +
+  labs(title = "Decibel Levels by Season", x = "Season", y = "Decibel Level")
+
+aggregate(DECIBEL_LEVEL ~ Season, data = SoundDS, FUN = mean)
+aggregate(DECIBEL_LEVEL ~ Season, data = SoundDS, FUN = median)
+aggregate(DECIBEL_LEVEL ~ Season, data = SoundDS, FUN = min)
+aggregate(DECIBEL_LEVEL ~ Season, data = SoundDS, FUN = max)
+aggregate(DECIBEL_LEVEL ~ Season, data = SoundDS, FUN = IQR)
+
+FilteredSoundDS <- SoundDS[
+  SoundDS$FOLDER_NAME == "98 RED RIVER STREET" |
+    SoundDS$FOLDER_NAME == "7-Eleven Grand Opening" |
+    SoundDS$FOLDER_NAME == "80 RAINEY STREET" |
+    SoundDS$FOLDER_NAME == "610 DAVIS STREET" |
+    SoundDS$FOLDER_NAME == "Club 1808"|
+    SoundDS$FOLDER_NAME == "ACL Live", 
+]
+table(FilteredSoundDS$FOLDER_NAME)
+table(FilteredSoundDS$SUB_TYPE)
+
+filtSound_ggplot <- ggplot(FilteredSoundDS)
+
+filtSound_ggplot +
+  geom_bar(aes(x = SUB_TYPE, fill = FOLDER_NAME), position = "fill") +
+  labs(title = "Application Type by Area", x = "Application Type", y = "Count")
+
+table(FilteredSoundDS$SUB_TYPE, FilteredSoundDS$FOLDER_NAME)
